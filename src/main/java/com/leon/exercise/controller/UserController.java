@@ -13,15 +13,10 @@ public class UserController {
     public String showLoginPage() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            return "forward:/index";
+            return "forward:/books";
         }
 
         return "login";
-    }
-
-    @GetMapping(value = "/index")
-    public String index() {
-        return "index";
     }
 
 }
