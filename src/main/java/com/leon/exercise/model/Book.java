@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table
@@ -34,10 +35,10 @@ public class Book {
 
     @CreatedDate
     @Column(nullable = false)
-    private long createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private long updatedAt;
+    private Date updatedAt;
 
     @Builder
     public Book(String title, String author, String description) {

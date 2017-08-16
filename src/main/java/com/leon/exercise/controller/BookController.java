@@ -1,15 +1,18 @@
 package com.leon.exercise.controller;
 
+import com.leon.exercise.controller.exception.BookNotFoundException;
 import com.leon.exercise.model.Book;
 import com.leon.exercise.service.BookService;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Controller
 public class BookController {
@@ -20,48 +23,54 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"), true));
+    }
+
     @GetMapping(value = "/books")
-    public ModelAndView findAll() {
-        ModelAndView page = new ModelAndView("books");
-        page.addObject("books", bookService.findAll());
-        return page;
+    public String findAll(Model model) {
+        model.addAttribute("books", bookService.findAll());
+        return "books";
     }
 
     @GetMapping(value = "/book/{id}")
-    public ModelAndView findOne(@PathVariable long id) {
-        ModelAndView page = new ModelAndView("book");
-        page.addObject("book", bookService.findOne(id));
-        return page;
+    public String findOne(@PathVariable long id, Model model) {
+        model.addAttribute("book", bookService.findOne(id));
+        return "book";
     }
 
     @GetMapping(value = "/book/new")
-    public ModelAndView showCreationPage(Book book) {
-        ModelAndView page = new ModelAndView("book-creation");
-        page.addObject("book", book);
-        return page;
+    public String showCreationPage(Book book, Model model) {
+        model.addAttribute("book", book);
+        return "book-creation";
     }
 
     @PostMapping(value = "/book")
-    public ModelAndView save(@Valid Book book, BindingResult bindingResult) {
+    public String save(@Valid Book book, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return showCreationPage(book);
+            return "book-creation";
         }
 
         bookService.save(book);
-        return findAll();
+        return "redirect:/books";
     }
 
     @GetMapping(value = "/book/delete/{id}")
-    public ModelAndView delete(@PathVariable long id) {
+    public String delete(@PathVariable long id) {
         bookService.delete(id);
-        return findAll();
+        return "redirect:/books";
     }
 
     @GetMapping(value = "/book/edit/{id}")
-    public ModelAndView update(@PathVariable long id) {
-        ModelAndView page = new ModelAndView("book-edition");
-        page.addObject("book", bookService.findOne(id));
-        return page;
+    public String showEditionPage(@PathVariable long id, Model model) {
+        model.addAttribute("book", bookService.findOne(id));
+        return "book-edition";
+    }
+
+    @ExceptionHandler(BookNotFoundException.class)
+    public String showErrorPage() {
+        return "error";
     }
 
 }
